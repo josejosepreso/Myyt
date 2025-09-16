@@ -7,14 +7,14 @@ import java.net.http.HttpResponse;
 import java.util.Optional;
 
 class HttpHandler {
-    public static Optional<HttpResponse<String>> GETRequest(String url)
-	throws IOException, URISyntaxException, InterruptedException
-    {
-	try {
-	    HttpRequest request = HttpRequest.newBuilder().uri(new URI(url)).GET().build();
-	    return Optional.of(HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()));
-	} catch (Exception e) {
-	    return Optional.empty();
-	}
-    }
+		public static Optional<HttpResponse<String>> GETRequest(String url)
+				throws IOException, URISyntaxException, InterruptedException
+		{
+				try {
+						HttpRequest request = HttpRequest.newBuilder().uri(new URI(url)).GET().build();
+						return Optional.of(HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()));
+				} catch (Exception e) {
+						return Optional.empty();
+				}
+		}
 }
