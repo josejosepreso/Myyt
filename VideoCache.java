@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 class VideoCache {
-		public static String getPathById(final String videoId) throws IOException {
+		public static String getPathByName(final String videoId) throws IOException {
 				File f = new File(Configuration.VIDEO_CACHE_PATH);
 				if (!f.exists()) f.mkdir();
 

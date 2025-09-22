@@ -11,6 +11,13 @@ class Main {
 						return;
 				}
 
+				final String cachedVideoPath = VideoCache.getPathByName(String.join("_", args));
+
+				if (cachedVideoPath != null) {
+						CommandCaller.shellCommand(String.format("mpv %s", cachedVideoPath));
+						return;
+				}
+
 				Video[] results = YouTubeSearcher.search(Arrays.stream(args).collect(Collectors.joining("+")).replace("-a+", ""));
 
 				int idx = 0;
@@ -32,15 +39,6 @@ class Main {
 						}
 				}
 
-				final String videoId = results[idx].getVideoId();
-
-				final String cachedVideoPath = VideoCache.getPathById(videoId);
-
-				if (cachedVideoPath != null) {
-						CommandCaller.shellCommand(String.format("mpv %s", cachedVideoPath));
-						return;
-				}
-
-				CommandCaller.shellCommand(String.format("mpv --stream-record=%s%s.mkv %s%s", Configuration.VIDEO_CACHE_PATH, videoId, Configuration.YT, videoId));
+				CommandCaller.shellCommand(String.format("mpv --stream-record=%s%s.mkv %s%s", Configuration.VIDEO_CACHE_PATH, String.join("_", args), Configuration.YT, results[idx].getVideoId()));
 		}
 }
