@@ -13,7 +13,7 @@ class YouTubeSearcher {
 						.map(key -> Configuration.YT_URL + query + Configuration.YT_URL_1 + key)
 						.orElse("");
 
-				Video[] videos = new Video[Configuration.N_RESULTS];
+				Video[] videos = new Video[Configuration.N_MAX_RESULTS];
 
 				HttpHandler.GETRequest(url).ifPresent(res -> {
 								if (res.statusCode() == 200 && !res.body().equals("")) {
@@ -27,6 +27,7 @@ class YouTubeSearcher {
 										}
 								}
 						});
+
 				return videos;
 		}
 }

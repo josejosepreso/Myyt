@@ -32,6 +32,15 @@ class Main {
 						}
 				}
 
-				CommandCaller.shellCommand(String.format("mpv %s%s", Configuration.YT, results[idx].getVideoId()));
+				final String videoId = results[idx].getVideoId();
+
+				final String cachedVideoPath = VideoCache.getPathById(videoId);
+
+				if (cachedVideoPath != null) {
+						CommandCaller.shellCommand(String.format("mpv %s", cachedVideoPath));
+						return;
+				}
+
+				CommandCaller.shellCommand(String.format("mpv --stream-record=%s%s.mkv %s%s", Configuration.VIDEO_CACHE_PATH, videoId, Configuration.YT, videoId));
 		}
 }
