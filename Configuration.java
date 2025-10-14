@@ -1,5 +1,5 @@
 class Configuration {
-		public static final int N_MAX_RESULTS = 20;
+		public static final int N_MAX_RESULTS = 10;
 		public static final String YT_URL = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=";
 		public static final String YT_URL_1 = String.format("&type=video&maxResults=%d&key=", N_MAX_RESULTS);
 		public static final String YT_KEY_PATH = "/home/jose/api/youtube";

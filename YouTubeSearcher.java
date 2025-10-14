@@ -15,6 +15,8 @@ class YouTubeSearcher {
 
 				Video[] videos = new Video[Configuration.N_MAX_RESULTS];
 
+				System.out.println(url);
+
 				HttpHandler.GETRequest(url).ifPresent(res -> {
 								if (res.statusCode() == 200 && !res.body().equals("")) {
 										String[] results = Arrays.stream(((String) res.body()).split("\n"))
