@@ -2,18 +2,51 @@ import java.util.*;
 import java.util.stream.*;
 import java.io.*;
 
+class JSON<T> {
+		private Map<String, T> values;
+
+		public JSON() {
+				this.values = new HashMap<>();
+		}
+
+		public T add(String key, T value) {
+				return this.values.put(key, value);
+		}
+}
+
+class Pair {
+		private Token key;
+		private List<Token> value;
+
+		public Pair(Token key, List<Token> value) {
+				this.key = key;
+				this.value = value;
+		}
+
+		public String toString() {
+				return String.format("%s %s", this.key, this.value);
+		}
+}
+
+class JSONParser {
+		public static JSON parseFile(String filePath) throws Exception {
+				Optional<String> source = FileHandler.getContent(Configuration.JSON_FILE);
+
+				if (!source.isPresent()) {
+						throw new IOException();
+				}
+
+				Lexer lexer = new Lexer(filePath, source.get());
+
+				System.out.println(lexer.getTokens());
+
+				return null;
+		}
+}
+
 class Main {
 		public static void main(String[] args) throws Exception {
-				FileHandler.getContent(Configuration.JSON_FILE).ifPresent(jsonContent -> {
-								Lexer lexer = new Lexer(Configuration.JSON_FILE, jsonContent);
-								List<Token> tokens = new ArrayList<>();
-
-								while (lexer.isNotEmpty()) {
-										lexer.nextToken().ifPresent(token -> tokens.add(token));
-								}
-
-								System.out.println(tokens);
-						});
+				JSONParser.parseFile(Configuration.JSON_FILE);
 		}
 }
 
@@ -29,10 +62,6 @@ class FileHandler {
 
 class Configuration {
 		public static final String JSON_FILE = "json";
-}
-
-class JSONParser {
-		public static <T> Map<String, T> parse(List<Token> tokens) { return null; }
 }
 
 class Loc {
@@ -224,5 +253,25 @@ class Lexer {
 
 				this.nextChar();
 				return Optional.empty();
+		}
+
+		public List<Token> getTokens() throws Exception {
+				if (this.isEmpty()) {
+						return Collections.emptyList();
+				}
+
+				List<Token> tokens = new ArrayList<>();
+
+				while (this.isNotEmpty()) {
+						Optional<Token> token = this.nextToken();
+
+						if (!token.isPresent()) {
+								throw new Exception();
+						}
+
+						tokens.add(token.get());
+				}
+
+				return tokens;
 		}
 }

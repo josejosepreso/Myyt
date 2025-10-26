@@ -2,9 +2,10 @@ import java.nio.file.*;
 import java.io.*;
 import java.util.List;
 import java.util.stream.Stream;
+import java.util.Optional;
 
 class VideoCache {
-		public static String getPathByName(final String videoId) throws IOException {
+		public static Optional<String> getPathByName(final String videoId) throws IOException {
 				File f = new File(Configuration.VIDEO_CACHE_PATH);
 				if (!f.exists()) f.mkdir();
 
@@ -16,10 +17,10 @@ class VideoCache {
 								.toList();
 
 						if (!filesPaths.isEmpty()) {
-								return filesPaths.get(0).toString();
+								return Optional.of(filesPaths.get(0).toString());
 						}
 				}
 
-				return null;
+				return Optional.empty();
 		}
 }

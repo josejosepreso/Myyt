@@ -7,4 +7,5 @@ class Configuration {
 		public static final String VIDEO_INFO_REGEX = ".*videoId.*|.*title.*|.*channelTitle.*|.*publishTime.*";
 		public static final String NIGHTZ = "BjJ_fH4uzRU";
 		public static final String VIDEO_CACHE_PATH = "/home/jose/.cache/Myyt/";
+		public static final String NOT_FOUND = "not_found_cached_video";
 }

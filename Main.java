@@ -11,21 +11,29 @@ class Main {
 						return;
 				}
 
-				final String cachedVideoPath = VideoCache.getPathByName(String.join("_", args));
+				final String cachedVideoPath = VideoCache.getPathByName(String.join("_", args)).orElse(Configuration.NOT_FOUND);
 
-				if (cachedVideoPath != null) {
+				if (!cachedVideoPath.equals(Configuration.NOT_FOUND)) {
 						CommandCaller.shellCommand(String.format("mpv %s", cachedVideoPath));
 						return;
 				}
 
-				Video[] results = YouTubeSearcher.search(Arrays.stream(args).collect(Collectors.joining("+")).replace("-a+", ""));
+				final String query = Arrays.stream(args)
+						.collect(Collectors.joining("+"))
+						.replace("-a+", "")
+						.replace("-f+", "");
+
+				Video[] results = YouTubeSearcher.search(query);
 
 				int idx = 0;
 
 				if (!args[0].equals("-a")) {
 						System.out.println("Select a video:");
 
-						Arrays.stream(results).map(video -> video.toString()).forEach(System.out::println);
+						Arrays.stream(results)
+								.filter(video -> video != null)
+								.map(Video::toString)
+								.forEach(System.out::println);
 
 						System.out.print("> ");
 

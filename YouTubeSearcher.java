@@ -15,9 +15,8 @@ class YouTubeSearcher {
 
 				Video[] videos = new Video[Configuration.N_MAX_RESULTS];
 
-				System.out.println(url);
-
 				HttpHandler.GETRequest(url).ifPresent(res -> {
+								// System.out.println(res.body());
 								if (res.statusCode() == 200 && !res.body().equals("")) {
 										String[] results = Arrays.stream(((String) res.body()).split("\n"))
 												.filter(YouTubeSearcher::matchesVideoInfo)
@@ -25,6 +24,7 @@ class YouTubeSearcher {
 												.toArray(String[]::new);
 
 										for (int i = 0, j = 0; i < results.length; i += 4, j++) {
+												if (i + 1 >= results.length) break;
 												videos[j] = new Video(j, results[i], results[i + 1], results[i + 2], results[i + 3]);
 										}
 								}
