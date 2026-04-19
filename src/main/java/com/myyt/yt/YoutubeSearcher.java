@@ -1,79 +1,127 @@
 package com.myyt.yt;
 
 import static com.myyt.util.Configuration.*;
-import static java.util.Collections.emptyList;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.ArrayList;
-import java.util.function.Function;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myyt.entity.Video;
+import com.myyt.exception.NoVideosFoundException;
 import com.myyt.util.FileHandler;
 import com.myyt.util.HttpHandler;
 
-import static com.myyt.util.Configuration.YT_KEY_PATH;;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Scanner;
+
+import static com.myyt.util.Configuration.YT_KEY_PATH;
+import static java.lang.System.out;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 public class YoutubeSearcher {
-    private static Video getVideo(int idx, JsonNode videoNode) {
-        final JsonNode snippetNode = videoNode.path("snippet");
+    private final FileHandler fileHandler;
+    private final HttpHandler httpHandler;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private String query;
 
-        if (snippetNode instanceof MissingNode)
-            return null;
-
-        final String videoId = videoNode.path("id")
-            .path("videoId")
-            .asText();
-
-        final String title = snippetNode.path("title").asText();
-
-        final String channel = snippetNode.path("channelTitle").asText();
-
-        final String date = snippetNode.path("publishTime").asText();
-
-        return Video.builder()
-            .id(idx)
-            .videoId(videoId)
-            .title(title)
-            .channel(channel)
-            .date(date)
-            .build();
+    public YoutubeSearcher(String query, FileHandler fileHandler, HttpHandler httpHandler) {
+        this.query = query;
+        this.fileHandler = fileHandler;
+        this.httpHandler = httpHandler;
     }
 
-    private static List<Video> parseResult(String json) throws Exception {
-        final List<Video> videos = new ArrayList<>();
+    public YoutubeSearcher(FileHandler fileHandler, HttpHandler httpHandler) {
+        this.query = null;
+        this.fileHandler = fileHandler;
+        this.httpHandler = httpHandler;
+    }
 
-        final JsonNode items = new ObjectMapper()
-            .readTree(json)
-            .path("items");
+    public YoutubeSearcher(String query) {
+        this.query = query;
+        this.fileHandler = new FileHandler();
+        this.httpHandler = new HttpHandler();
+    }
+
+    public void setQuery(String query) {
+        this.query = query;
+    }
+
+    Optional<Video> getVideo(int idx, JsonNode videoNode) {
+        final JsonNode snippetNode = videoNode.path("snippet");
+
+        if (snippetNode.isMissingNode())
+            return empty();
+
+        final Video video = Video.builder()
+            .id(idx)
+            .videoId(videoNode.path("id").path("videoId").asText())
+            .title(snippetNode.path("title").asText())
+            .channel(snippetNode.path("channelTitle").asText())
+            .date(snippetNode.path("publishTime").asText())
+            .build();
+
+        return of(video);
+    }
+
+    Video[] parseResult(String json) throws JsonProcessingException {
+        final JsonNode items = this.objectMapper.readTree(json).path("items");
+
+        final Optional<Video>[] videos = new Optional[items.size()];
 
         int i = 0;
 
         for (JsonNode node : items)
-            videos.add(YoutubeSearcher.getVideo(i++, node));
+            videos[i] = this.getVideo(i++, node);
 
-        return videos.stream()
-            .filter(Objects::nonNull)
-            .toList();
+        return Arrays.stream(videos)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toArray(Video[]::new);
     }
 
-    public static List<Video> search(String query) {
-        final Function<String, String> getFullYouTubeUrl = key ->
-            YT_URL + query + YT_URL_1 + key;
-
+    Video[] getVideos(String query) throws NoVideosFoundException {
         try {
-            final String result = FileHandler.getContent(YT_KEY_PATH)
-                .map(getFullYouTubeUrl)
-                .flatMap(HttpHandler::GETRequest)
-                .flatMap(HttpHandler::getResponseBody)
+            String result = this.fileHandler.getContent(YT_KEY_PATH)
+                .map(key -> YT_URL + query + YT_URL_1 + key)
+                .flatMap(this.httpHandler::GETRequest)
+                .flatMap(this.httpHandler::getResponseBody)
                 .orElseThrow(Exception::new);
 
-            return parseResult(result);
+            Video[] videos = this.parseResult(result);
+
+            System.out.println(java.util.Arrays.toString(videos));
+
+            if (videos.length == 0)
+                throw new NoVideosFoundException("No results for search " + this.query);
+
+            return videos;
+        } catch(NoVideosFoundException e) {
+            throw e;
         } catch(Exception e) {
-            return emptyList();
+            e.printStackTrace();
+            return new Video[0];
         }
+    }
+
+    public Video getResult() throws NoVideosFoundException {
+        var videos = this.getVideos(this.query);
+
+        out.println("Select a video:");
+
+        Arrays.stream(videos)
+                .map(Video::toString)
+                .forEach(out::println);
+
+        out.print("> ");
+
+        try (Scanner scanner = new Scanner(System.in)) {
+            return videos[ scanner.nextInt() ];
+        }
+    }
+
+    public Video getFirstResult() throws NoVideosFoundException {
+        return this.getVideos(this.query)[0];
     }
 }

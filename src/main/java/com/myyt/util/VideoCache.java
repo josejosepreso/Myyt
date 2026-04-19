@@ -8,11 +8,11 @@ import java.io.*;
 import static com.myyt.util.Configuration.*;
 
 public class VideoCache {
-    public static String getPathByName(String videoId) throws IOException {
+    public static String getPathByName(String videoId) {
         final File file = new File(VIDEO_CACHE_PATH);
 
-        if (!file.exists())
-            file.mkdir();
+        if (!file.exists() && !file.mkdir())
+            return null;
 
         try (Stream<Path> paths = Files.walk(Paths.get(VIDEO_CACHE_PATH))) {
             final String cachedVideoPath = String.format("%s%s.mkv", VIDEO_CACHE_PATH, videoId);
