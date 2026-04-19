@@ -20,9 +20,8 @@ import static com.myyt.util.TestConstants.*;
 import static java.util.Optional.empty;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static java.util.Optional.of;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class YoutubeSearcherTest {
@@ -83,17 +82,18 @@ public class YoutubeSearcherTest {
     }
 
     @Test
-    void shouldReturnEmptyArrayWhenKeyMissing() throws NoVideosFoundException {
+    void shouldReturnEmptyArrayWhenKeyMissing() throws NoVideosFoundException, JsonProcessingException {
         when(this.fileHandler.getContent(any()))
                 .thenReturn(empty());
 
         Video[] videos = this.youtubeSearcher.getVideos(ANYTHING_SEARCH_QUERY);
 
         assertEquals(0, videos.length);
+        verify(mock(YoutubeSearcher.class), never()).parseResult(any());
     }
 
     @Test
-    void shouldReturnEmptyArrayWhenHttpFails() throws NoVideosFoundException {
+    void shouldReturnEmptyArrayWhenHttpFails() throws NoVideosFoundException, JsonProcessingException {
         when(this.fileHandler.getContent(any()))
                 .thenReturn(of(API_KEY));
 
@@ -103,6 +103,7 @@ public class YoutubeSearcherTest {
         Video[] videos = this.youtubeSearcher.getVideos(ANYTHING_SEARCH_QUERY);
 
         assertEquals(0, videos.length);
+        verify(mock(YoutubeSearcher.class), never()).parseResult(any());
     }
 
     @Test
@@ -119,6 +120,16 @@ public class YoutubeSearcherTest {
         this.youtubeSearcher.setQuery(MOCK_NO_RESULTS_QUERY);
 
         assertThrows(NoVideosFoundException.class, () -> this.youtubeSearcher.getFirstResult());
+    }
+
+    @Test
+    void shouldReturnEmptyArrayWhenExceptionIsThrown() throws NoVideosFoundException {
+        when(this.youtubeSearcher.getVideos(any()))
+                .thenThrow(new RuntimeException());
+
+        Video[] videos = this.youtubeSearcher.getVideos(EMPTY_STRING);
+
+        assertEquals(0, videos.length);
     }
 
     @Test

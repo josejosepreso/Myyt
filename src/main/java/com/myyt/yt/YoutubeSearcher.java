@@ -91,8 +91,6 @@ public class YoutubeSearcher {
 
             Video[] videos = this.parseResult(result);
 
-            System.out.println(java.util.Arrays.toString(videos));
-
             if (videos.length == 0)
                 throw new NoVideosFoundException("No results for search " + this.query);
 
